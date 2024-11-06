@@ -1,0 +1,89 @@
+%Function to select and load an image from the user
+function img = load_image()
+    [file, path] = uigetfile({'.jpg;.png;.bmp', 'Image Files (.jpg, *.png, *.bmp)'});
+    if isequal(file, 0)
+        disp('No image selected');
+        img = [];
+    else
+        img = imread(fullfile(path, file));
+    end
+end
+
+% Function to remove noise using Gaussian Blur
+function denoised_img = denoise_image(img)
+    % Convert the image to grayscale if it's a color image
+    if size(img, 3) == 3
+        gray_img = rgb2gray(img);
+    else
+        gray_img = img;
+    end
+    
+    % Apply Gaussian Blur to reduce noise
+    denoised_img = imgaussfilt(gray_img, 2); % Standard deviation of 2
+end
+
+% Function to sharpen the image
+function sharpened_img = sharpen_image(denoised_img)
+    % Create a sharpening filter with a stronger emphasis
+    sharpen_filter = fspecial('unsharp', 0.5); % You can adjust the amount for stronger sharpening
+    
+    % Apply the filter to the denoised image
+    sharpened_img = imfilter(denoised_img, sharpen_filter, 'replicate');
+end
+
+% Function to colorize the sharpened image
+function colorized_img = colorize_image(sharpened_img)
+    % Normalize the sharpened image to the range [0, 1]
+    normalized_img = double(sharpened_img) / 255;
+
+    % Create a colormap (e.g., 'jet', 'hot', 'parula', etc.)
+    colormapChoice = jet(256); % Using the 'jet' colormap
+
+    % Colorize the grayscale image
+    colorized_img = ind2rgb(uint8(normalized_img * 255), colormapChoice);
+end
+
+% Function to display original, denoised, sharpened, and colorized images
+function show_images(original_img, denoised_img, sharpened_img, colorized_img)
+    figure;
+    
+    % Original Image
+    subplot(2, 2, 1);
+    imshow(original_img);
+    title('Original Image');
+    
+    % Denoised Image
+    subplot(2, 2, 2);
+    imshow(denoised_img);
+    title('Denoised Image');
+    
+    % Sharpened Image
+    subplot(2, 2, 3);
+    imshow(sharpened_img);
+    title('Sharpened Image');
+    
+    % Colorized Image
+    subplot(2, 2, 4);
+    imshow(colorized_img);
+    title('Colorized Image');
+end
+
+% Main code execution
+img = load_image();  % Load image from user
+
+if ~isempty(img)
+    % Denoise the image
+    denoised_img = denoise_image(img);
+    
+    % Sharpen the denoised image
+    sharpened_img = sharpen_image(denoised_img);
+    
+    % Colorize the sharpened image
+    colorized_img = colorize_image(sharpened_img);
+    
+    % Display images
+    show_images(img, denoised_img, sharpened_img, colorized_img);
+else
+    disp('No image to process');
+end
+
